@@ -1,47 +1,59 @@
-use bevy::prelude::*;
-
-// fn hello_world(){
-//     println!("Hello World");
-// }
-
-#[derive(Component)]
-struct Person;
+use bevy::{
+    prelude::*,
+    sprite::MaterialMesh2dBundle,
+    input::{keyboard::KeyCode, Input},
+};
 
 #[derive(Component)]
-struct Name(String);
-
-// add this add startup
-fn add_people(mut commands: Commands){
-    commands.spawn().insert(Person).insert(Name("Elaina Proctor".to_string()));
-    commands.spawn().insert(Person).insert(Name("Renzo Hume".to_string()));
-    commands.spawn().insert(Person).insert(Name("Zayna Nieves".to_string()));
+enum Direction {
+    Up
 }
 
-struct GreetTimer(Timer);
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
+    // Camera 2d
+    commands.spawn_bundle(Camera2dBundle::default());
 
-fn greet_people(time:Res<Time>, mut timer:ResMut<GreetTimer>, query: Query<&Name, With<Person>>){
-    // update our timer with the time elapsed since last updated
-    // if that caused the timer to finish, we say hello to everyone
-    if timer.0.tick(time.delta()).just_finished(){
-        for name in query.iter(){
-            println!("hello {}!", name.0)
+    // Circle
+    commands.spawn_bundle(MaterialMesh2dBundle {
+        mesh: meshes.add(shape::Circle::new(50.).into()).into(),
+        material: materials.add(ColorMaterial::from(Color::WHITE)),
+        transform: Transform::from_translation(Vec3::new(-100., 0., 0.)),
+        ..default()
+    }).insert(Direction::Up);
+}
+
+fn keyboard_input_system(
+    keyboard_input: Res<Input<KeyCode>>,
+    mut sprite_position: Query<(&mut Direction, &mut Transform)>
+)
+{
+    for (mut circle, mut transform) in &mut sprite_position{
+        if keyboard_input.pressed(KeyCode::A) {
+            match *circle {
+                Direction::Up => transform.translation.y += 10.0,
+
+            }
         }
     }
-}
 
-pub struct HelloPlugin;
 
-impl Plugin for HelloPlugin {
-    fn build(&self, app: &mut App) {
-        app.insert_resource(GreetTimer(Timer::from_seconds(2.0, true)))
-            .add_startup_system(add_people)
-            .add_system(greet_people);
+
+    if keyboard_input.just_pressed(KeyCode::A){
+        info!("< just pressed")
     }
+
 }
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugin(HelloPlugin)
+        .add_startup_system(setup)
+        .add_system(keyboard_input_system)
         .run();
 }
+
+
