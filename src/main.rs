@@ -1,27 +1,24 @@
-use std::cmp::Ordering;
-use std::io;
-use rand::Rng;
+use bevy::prelude::*;
+
+fn hello_world(){
+    println!("Hello World");
+}
+
+#[derive(Component)]
+struct Person;
+
+#[derive(Component)]
+struct Name(String);
+
+fn add_people(mut commands: Commands){
+    commands.spawn().insert(Person).insert(Name("Elaina Proctor".to_string()));
+    commands.spawn().insert(Person).insert(Name("Renzo Hume".to_string()));
+    commands.spawn().insert(Person).insert(Name("Zayna Nieves".to_string()));
+}
 
 fn main() {
-    println!("Guess the number!");
-
-    let secret_number = rand::thread_rng().gen_range(1..=100);
-
-    // println!("The secret number is: {secret_number}");
-
-    println!("Please input your guess");
-
-    let mut guess = String::new();
-
-     io::stdin().read_line(&mut guess).expect("Failed to read line");
-
-    let guess: u32 = guess.trim().parse().expect("Please type a number");
-
-    println!("You guessed: {guess}");
-
-    match guess.cmp(&secret_number) {
-        Ordering::Less => println!("Too small!"),
-        Ordering::Greater => println!("Too big!"),
-        Ordering::Equal => println!("You Win!")
-    }
+    App::new()
+        .add_startup_system(add_people)
+        .add_system(hello_world)
+        .run();
 }
