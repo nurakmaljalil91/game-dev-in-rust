@@ -1,59 +1,66 @@
-use bevy::{
-    prelude::*,
-    sprite::MaterialMesh2dBundle,
-    input::{keyboard::KeyCode, Input},
-};
+//! Shows how to create a 3D orthographic view (for isometric-look games or CAD applications).
 
-#[derive(Component)]
-enum Direction {
-    Up
-}
-
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    // Camera 2d
-    commands.spawn_bundle(Camera2dBundle::default());
-
-    // Circle
-    commands.spawn_bundle(MaterialMesh2dBundle {
-        mesh: meshes.add(shape::Circle::new(50.).into()).into(),
-        material: materials.add(ColorMaterial::from(Color::WHITE)),
-        transform: Transform::from_translation(Vec3::new(-100., 0., 0.)),
-        ..default()
-    }).insert(Direction::Up);
-}
-
-fn keyboard_input_system(
-    keyboard_input: Res<Input<KeyCode>>,
-    mut sprite_position: Query<(&mut Direction, &mut Transform)>
-)
-{
-    for (mut circle, mut transform) in &mut sprite_position{
-        if keyboard_input.pressed(KeyCode::A) {
-            match *circle {
-                Direction::Up => transform.translation.y += 10.0,
-
-            }
-        }
-    }
-
-
-
-    if keyboard_input.just_pressed(KeyCode::A){
-        info!("< just pressed")
-    }
-
-}
+use bevy::{prelude::*, render::camera::ScalingMode};
 
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_startup_system(setup)
-        .add_system(keyboard_input_system)
         .run();
 }
 
+/// set up a simple 3D scene
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<StandardMaterial>>,
+) {
+    // camera
+    commands.spawn_bundle(Camera3dBundle {
+        projection: OrthographicProjection {
+            scale: 3.0,
+            scaling_mode: ScalingMode::FixedVertical(2.0),
+            ..default()
+        }
+            .into(),
+        transform: Transform::from_xyz(5.0, 5.0, 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        ..default()
+    });
 
+    // plane
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Plane { size: 5.0 })),
+        material: materials.add(Color::rgb(0.3, 0.5, 0.3).into()),
+        ..default()
+    });
+    // cubes
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        transform: Transform::from_xyz(1.5, 0.5, 1.5),
+        ..default()
+    });
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        transform: Transform::from_xyz(1.5, 0.5, -1.5),
+        ..default()
+    });
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        transform: Transform::from_xyz(-1.5, 0.5, 1.5),
+        ..default()
+    });
+    commands.spawn_bundle(PbrBundle {
+        mesh: meshes.add(Mesh::from(shape::Cube { size: 1.0 })),
+        material: materials.add(Color::rgb(0.8, 0.7, 0.6).into()),
+        transform: Transform::from_xyz(-1.5, 0.5, -1.5),
+        ..default()
+    });
+    // light
+    commands.spawn_bundle(PointLightBundle {
+        transform: Transform::from_xyz(3.0, 8.0, 5.0),
+        ..default()
+    });
+}
